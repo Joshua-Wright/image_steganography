@@ -1,7 +1,7 @@
 // (c) Copyright 2015 Josh Wright
 #include <iostream>
 #include <vector>
-#include "lodepng.h"
+#include "lib/lodepng.h"
 // #include <string>
 // #include <cstdlib>
 /*
