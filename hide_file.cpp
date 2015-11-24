@@ -72,7 +72,7 @@ int main(int argc, char const *argv[]) {
     if (encode) {
         lodepng::decode(image_data, width, height, image_input_filename);
         std::vector<bool> data_to_hide = read_file_into_bool_vector(data_filename);
-        conbine_bits(image_data, data_to_hide);
+        combine_bits(image_data, data_to_hide);
         lodepng::encode(output_filename, image_data, width, height);
     } else {
         lodepng::decode(image_data, width, height, image_input_filename);

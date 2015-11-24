@@ -59,7 +59,7 @@ void write_bool_vector_to_file(const std::vector<bool> &bits, std::string output
     }
 }
 
-void conbine_bits(std::vector<unsigned char> &image_data, std::vector<bool> &bits, bool pad = false) {
+void combine_bits(std::vector<unsigned char> &image_data, std::vector<bool> &bits, bool pad = false) {
     /* TODO: add upscaling for bigger data input */
     /* TODO: Find a way to indicate when result has been padded*/
     // iterate like this so that we skip the pixels representing transparency
