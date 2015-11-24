@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include <sstream>
 
+using std::size_t;
 typedef unsigned char uchar;
 const uchar UCHAR_MAX = 0xFF;
 const uchar MASK_IMAGE_DATA = 0xfe;
@@ -107,4 +108,42 @@ std::vector<bool> extract_bits(const std::vector<unsigned char> &image_data) {
         i_image++;
     }
     return bits;
+}
+
+
+void combine_bytes(std::vector<unsigned char> &image_data, const std::vector<unsigned char> &bytes) {
+    for (size_t i = 0; i < bytes.size(); ++i) {
+        image_data.at(i) |= (bytes.at(i / 8) << (i % 8)) & 0x01;
+    }
+}
+
+std::vector<unsigned char> extract_bytes(const std::vector<unsigned char> &image_data) {
+    std::vector<unsigned char> bytes(image_data.size() / 8, 0x00);
+    for (size_t i = 0; i < bytes.size(); ++i) {
+        bytes.at(i) = (
+                ((image_data.at(i * 8 + 0) & MASK_HIDDEN_DATA) << 0) |
+                ((image_data.at(i * 8 + 1) & MASK_HIDDEN_DATA) << 1) |
+                ((image_data.at(i * 8 + 2) & MASK_HIDDEN_DATA) << 2) |
+                ((image_data.at(i * 8 + 3) & MASK_HIDDEN_DATA) << 3) |
+                ((image_data.at(i * 8 + 4) & MASK_HIDDEN_DATA) << 4) |
+                ((image_data.at(i * 8 + 5) & MASK_HIDDEN_DATA) << 5) |
+                ((image_data.at(i * 8 + 6) & MASK_HIDDEN_DATA) << 6) |
+                ((image_data.at(i * 8 + 7) & MASK_HIDDEN_DATA) << 7)
+        );
+    }
+    return bytes;
+}
+
+std::vector<unsigned char> read_file_into_vector(const std::string &filename) {
+    std::ifstream input_file(filename, std::ios::binary | std::ios::ate);
+    size_t file_size = (size_t) input_file.tellg();
+    std::vector<unsigned char> bytes(file_size, 0x00);
+    input_file.seekg(0, std::ios_base::beg);
+    input_file.read((char *) bytes.data(), file_size);
+    return bytes;
+}
+
+void write_vector_to_file(const std::vector<unsigned char> &data, const std::string &filename) {
+    std::ofstream output_file(filename, std::ios::binary);
+    output_file.write((const char *) data.data(), data.size());
 }
