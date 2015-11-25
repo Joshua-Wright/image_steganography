@@ -6,7 +6,7 @@
 #include "lib/lodepng.h"
 #include "lib/lib.h"
 
-#define HIDE_FILE_DEBUG
+//#define HIDE_FILE_DEBUG
 
 /*
 g++    -std=gnu++14 -O3 lodepng.cpp lib.cpp hide_file.cpp -o hide_file
@@ -56,39 +56,20 @@ int main(int argc, char const *argv[]) {
 #endif
     }
 
-//#ifdef HIDE_FILE_DEBUG
-//    std::vector<unsigned char> image_data;
-//    unsigned width, height;
-//    lodepng::decode(image_data, width, height, image_input_filename);
-//    cout << "read input image" << endl;
-//    std::vector<bool> data_to_hide = read_file_into_bool_vector(data_filename);
-//    cout << "read data file" << endl;
-//    conbine_bits(image_data, data_to_hide);
-//    cout << "combined bits" << endl;
-//    lodepng::encode(output_filename, image_data, width, height);
-//    cout << "wrote output image" << endl;
-//    return 0;
-//#endif
-
     std::vector<unsigned char> image_data;
     unsigned width, height;
     if (encode) {
-        lodepng::decode(image_data, width, height, image_input_filename);
-
-//        std::vector<bool> data_to_hide = read_file_into_bool_vector(data_filename);
-//        combine_bits(image_data, data_to_hide);
-
+        lodepng::decode(image_data, width, height, image_input_filename, LCT_RGB);
+//        cout << "read image" << endl;
         std::vector<unsigned char> bytes = read_file_into_vector(data_filename);
         combine_bytes(image_data, bytes);
-
-        lodepng::encode(output_filename, image_data, width, height);
+//        cout << "writing image" << endl;
+        lodepng::encode(output_filename, image_data, width, height, LCT_RGB);
     } else {
-        lodepng::decode(image_data, width, height, image_input_filename);
-
-//        std::vector<bool> hidden_data = extract_bits(image_data);
-//        write_bool_vector_to_file(bytes, output_filename);
-
+        lodepng::decode(image_data, width, height, image_input_filename, LCT_RGB);
+//        cout << "read image" << endl;
         std::vector<unsigned char> bytes = extract_bytes(image_data);
+//        cout << "writing file" << endl;
         write_vector_to_file(bytes, output_filename);
     }
 
