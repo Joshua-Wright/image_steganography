@@ -4,6 +4,7 @@
 #include <vector>
 #include <stdexcept>
 #include <sstream>
+#include <zlib.h>
 
 /*for debugging*/
 using std::cout;
@@ -11,17 +12,19 @@ using std::endl;
 
 using std::size_t;
 typedef unsigned char uchar;
-const uchar UCHAR_MAX = 0xFF;
+//const uchar UCHAR_MAX = 0xFF;
 const uchar MASK_IMAGE_DATA = 0xfe;
 const uchar MASK_HIDDEN_DATA = 0x01;
 const uchar BITS_PER_CHAR = sizeof(char) * 8;
 
 void combine_bytes(std::vector<unsigned char> &image_data, const std::vector<unsigned char> &bytes) {
     for (size_t i = 0; i < image_data.size(); ++i) {
-        /*unset the leftmost bit*/
-        image_data.at(i) &= MASK_IMAGE_DATA;
-        /*set the leftmost bit to our bit*/
-        image_data.at(i) |= (bytes.at(i / 8) >> (i % 8)) & 0x01;
+        if (i/8 < bytes.size()) {
+            /*unset the leftmost bit*/
+            image_data.at(i) &= MASK_IMAGE_DATA;
+            /*set the leftmost bit to our bit*/
+            image_data.at(i) |= (bytes.at(i / 8) >> (i % 8)) & 0x01;
+        }
     }
 }
 
@@ -62,4 +65,48 @@ void write_vector_to_file(const std::vector<unsigned char> &data, const std::str
     /*direclty write the vector*/
     output_file.write((const char *) data.data(), data.size());
 //    cout << "output file size: " << data.size() << endl;
+}
+
+
+std::vector<unsigned char> compress_buffer(const std::vector<unsigned char> &data) {
+    size_t output_length = data.size() * 2;
+    std::vector<unsigned char> output(output_length, 0);
+    int err = compress2(output.data(), &output_length, data.data(), data.size(), Z_BEST_COMPRESSION);
+    switch (err) {
+        case Z_BUF_ERROR:
+            throw std::runtime_error("Z_BUF_ERROR");
+        case Z_DATA_ERROR:
+            throw std::runtime_error("Z_DATA_ERROR");
+        case Z_MEM_ERROR:
+            throw std::runtime_error("Z_MEM_ERROR");
+        case Z_STREAM_ERROR:
+            throw std::runtime_error("Z_STREAM_ERROR");
+        case Z_OK:
+            output.resize(output_length);
+            return output;
+        default:
+            throw std::runtime_error("Some other (zlib?) error");
+    }
+}
+
+std::vector<unsigned char> decompress_buffer(const std::vector<unsigned char> &data) {
+    size_t output_length = data.size();
+    /*extra big buffer because we're decompressing*/
+    std::vector<unsigned char> output(data.size() * 2, 0);
+    int err = uncompress(output.data(), &output_length, data.data(), data.size());
+    switch (err) {
+        case Z_BUF_ERROR:
+            throw std::runtime_error("Z_BUF_ERROR");
+        case Z_DATA_ERROR:
+            throw std::runtime_error("Z_DATA_ERROR");
+        case Z_MEM_ERROR:
+            throw std::runtime_error("Z_MEM_ERROR");
+        case Z_STREAM_ERROR:
+            throw std::runtime_error("Z_STREAM_ERROR");
+        case Z_OK:
+            output.resize(output_length);
+            return output;
+        default:
+            throw std::runtime_error("Some other (zlib?) error");
+    }
 }

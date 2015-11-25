@@ -1,16 +1,11 @@
 // (c) Copyright 2015 Josh Wright
 #include <iostream>
-// #include <vector>
-// #include <string>
-// #include <cstdlib>
 #include "lib/lodepng.h"
 #include "lib/lib.h"
 
-//#define HIDE_FILE_DEBUG
-
 /*
-g++    -std=gnu++14 -O3 lodepng.cpp lib.cpp hide_file.cpp -o hide_file
-g++ -g -std=gnu++14 -O0 lodepng.cpp lib.cpp hide_file.cpp -o hide_file
+g++    -std=gnu++14 -O3 -lz lodepng.cpp lib.cpp hide_file.cpp -o hide_file
+g++ -g -std=gnu++14 -O0 -lz lodepng.cpp lib.cpp hide_file.cpp -o hide_file
 ./hide_file
 */
 
@@ -24,15 +19,6 @@ int main(int argc, char const *argv[]) {
     bool encode;
 
     if (argc < 3) {
-#ifdef HIDE_FILE_DEBUG
-//        encode = true;
-//        image_input_filename = "test_image.png";
-//        output_filename = "test_image.hidden.png";
-//        data_filename = "test.bin";
-        encode = false;
-        image_input_filename = "/home/j0sh/Dropbox/code/Cpp/hide_stuff_in_images/tests/image_test_2.png";
-        output_filename = "/home/j0sh/Dropbox/code/Cpp/hide_stuff_in_images/tests/test.bin.new";
-#else
         cout << "Usage: " << argv[0] << " -e <data to hide> <input image> <output image>" << endl;
         cout << "Usage: " << argv[0] << " -d <image with hidden data> <output file>" << endl;
         cout << "-e    encode" << endl;
@@ -53,24 +39,21 @@ int main(int argc, char const *argv[]) {
             cerr << "Unrecognized option: " << enc_dec << endl;
             return 1;
         }
-#endif
     }
 
     std::vector<unsigned char> image_data;
     unsigned width, height;
     if (encode) {
         lodepng::decode(image_data, width, height, image_input_filename, LCT_RGB);
-//        cout << "read image" << endl;
         std::vector<unsigned char> bytes = read_file_into_vector(data_filename);
-        combine_bytes(image_data, bytes);
-//        cout << "writing image" << endl;
+        std::vector<unsigned char> compressed_bytes = compress_buffer(bytes);
+        combine_bytes(image_data, compressed_bytes);
         lodepng::encode(output_filename, image_data, width, height, LCT_RGB);
     } else {
         lodepng::decode(image_data, width, height, image_input_filename, LCT_RGB);
-//        cout << "read image" << endl;
         std::vector<unsigned char> bytes = extract_bytes(image_data);
-//        cout << "writing file" << endl;
-        write_vector_to_file(bytes, output_filename);
+        std::vector<unsigned char> compressed_bytes = decompress_buffer(bytes);
+        write_vector_to_file(compressed_bytes, output_filename);
     }
 
     return 0;
